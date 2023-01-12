@@ -14,9 +14,9 @@ intent('create event', p => {
 });
 
 
-intent(`(I want|please) (to|a|an|) (open|edit) $(NUMBER), event`, p => {
-    p.play(`Openning ${p.NUMBER} for you`, 'Sure', 'Here you go');
-    let number = p.NUMBER ? p.NUMBER.number : 1;
+intent(`(I want|please) (to|a|an|) (open|edit) $(ORDINAL), event`, p => {
+    p.play(`Openning ${p.ORDINAL} for you`, 'Sure', 'Here you go');
+    let number = p.ORDINAL ? p.ORDINAL.number : 1;
     // Sending the command to the app
     p.play({command: 'openEvent', item: number});
 });
