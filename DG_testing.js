@@ -13,10 +13,22 @@ intent('create event', p => {
     p.play({command: 'createEvent'});
 });
 
-intent(`(yes|ok)`, p => {
+intent(`(yes|okey|confirm)`, p => {
     if (p.visual) {
+        console.log(p.visual)
         if (p.visual.isOpenActiveEvent) {
            p.play({command: 'openActiveEvent'}); 
+        }
+        if (p.visual.isOnboardingTakeover) {
+           p.play({command: 'openCreateEventDetails'}); 
+        }
+    }
+   
+});
+intent(`(no|not|cancel)`, p => {
+    if (p.visual) {
+        if (p.visual.isOnboardingTakeover) {
+           p.play({command: 'goBack'}); 
         }
     }
    
@@ -43,4 +55,12 @@ intent(`open active event`, p => {
 projectAPI.runText = function(p, param, callback) {
   console.log(param);
   p.play(`${param.text}`);
+};
+
+projectAPI.onboardingTakeover = function(p, param, callback) {
+  p.play(`Let's Organize your fundraising event.
+  1. Pick your start date, Select the date you’d like your fundraising event to begin.
+  2. Invite your team, Share the unique event code with your team so they can join the fundraiser.
+  3. Raise for 4 days. Each team member will create and share their own Pop-Up Store.
+  Do you wan't Schedule an Event? `);
 };
