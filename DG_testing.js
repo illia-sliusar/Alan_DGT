@@ -22,13 +22,19 @@ intent(`(yes|ok)`, p => {
    
 });
 
-// 
+// open event by ORDINAL
 // intent(`(I want|please) (to|a|an|) (open|edit) $(ORDINAL), event`, p => {
 //     p.play(`Openning ${p.ORDINAL} for you`, 'Sure', 'Here you go');
 //     let number = p.ORDINAL ? p.ORDINAL.number : 1;
 //     // Sending the command to the app
 //     p.play({command: 'openEvent', item: number});
 // });
+
+// Do you want create event?
+// select Date > min/max date + blackout dates
+// team name 
+// select activity > states + new store
+// zip > validation
 
 projectAPI.runText = function(p, param, callback) {
   console.log(param);
