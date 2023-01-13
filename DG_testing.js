@@ -22,6 +22,10 @@ intent(`(yes|ok)`, p => {
    
 });
 
+intent(`open active event`, p => {
+    p.play({command: 'openActiveEvent'})
+});
+
 // open event by ORDINAL
 // intent(`(I want|please) (to|a|an|) (open|edit) $(ORDINAL), event`, p => {
 //     p.play(`Openning ${p.ORDINAL} for you`, 'Sure', 'Here you go');
