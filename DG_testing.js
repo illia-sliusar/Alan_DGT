@@ -14,7 +14,6 @@ intent('create event', p => {
 
 intent(`(yes|okey|confirm|Correct|Sure|Absolutely|Naturally|Definitely)`, p => {
     if (p.visual) {
-        console.log(p.visual)
         if (p.visual.isOpenActiveEvent) {
             p.play({command: 'openActiveEvent'}); 
         }
@@ -130,6 +129,7 @@ const handleSelectDate = async (p) => {
         handleSelectDate(p)
     }
 }
+
 const userInputDate = context(() => {
     intent("$(Date|DateTime)", p => p.resolve(p.DATE));
 })
@@ -137,10 +137,12 @@ const userInputDate = context(() => {
 projectAPI.runText = function(p, param, callback) {
     p.play(`${param.text}`);
 };
+
 projectAPI.runSelectDay = function(p, param, callback) {
     p.play(`${param.text}`);
     handleSelectDate(p)
 };
+
 
 projectAPI.onboardingTakeover = function(p, param, callback) {
     p.play(`Let's Organize your fundraising event.
@@ -157,3 +159,4 @@ projectAPI.createEvent = function(p, param, callback) {
   third. Team Activity.
 To fill the field say the number of the field or field name.`);
 };
+
