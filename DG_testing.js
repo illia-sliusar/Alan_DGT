@@ -42,18 +42,7 @@ intent(`(open|edit|fill|) $(D first|second|third) (field|)`, p => {
         }
     }
 });
-const handleTeamName = async (p) => {
-    const value = await p.then(userInput);
-    p.play({command: "editFiledByName", value: value});
-    p.play(`is your team name: ${value}`);
-    let userDecision = await p.then(handleUnswer);
-    if (userDecision) {
 
-    } else {
-        p.play('(Okey, no problem lets try again)');
-        handleTeamName(p)
-    }
-}
 intent(`(open|edit|fill|) team name`, async p => {
     if (p.visual) {
         if (p.visual.routeName === "manageEvent") {
@@ -76,19 +65,14 @@ intent(`(open|edit|fill|) 4 day Fundraising window`, async p => {
         }
     }
 });
-
-const userInput = context(() => {
-    intent("$(I* .+)", p => p.resolve(p.I));
-})
-const handleUnswer = context(() => {
-    intent("(Yes|Okey|Correct|Sure|Absolutely|Naturally|Definitely|Of course)", p => {
-        p.resolve(true);
-    });
-
-    intent("(No|Negative|No way|Never|Not now|Incorrect)", p => {
-        p.resolve(false);
-    });
-})
+intent(`(open|edit|fill|) (start|) time`, async p => {
+    if (p.visual) {
+        if (p.visual.routeName === "manageEvent") {
+            p.play('What is event start Time?');
+            handleSelectTime(p)
+        }
+    }
+});
 
 
 intent(`(no|not|cancel)`, p => {
@@ -116,14 +100,41 @@ intent(`open active event`, p => {
 // select Date > min/max date + blackout dates
 // select activity > states + new store
 // zip > validation
-
-const handleSelectDate = async (p) => {
-    const [value, moment] = await p.then(userInputDate);
-    p.play({command: "readStartDate", value: moment.toDate()});
-    p.play(`is selected Date correct: ${value}`);
+const handleTeamName = async (p) => {
+    const value = await p.then(userInput);
+    p.play({command: "editFiledByName", value: value});
+    p.play(`is your team name: ${value}`);
     let userDecision = await p.then(handleUnswer);
     if (userDecision) {
 
+    } else {
+        p.play('(Okey, no problem lets try again)');
+        handleTeamName(p)
+    }
+}
+const handleSelectDate = async (p) => {
+    const resolve = await p.then(userInputDate);
+    console.log(resolve);
+    p.play({command: "readStartDate", value: resolve.date});
+    p.play(`is selected Date correct: ${resolve.value}`);
+    let userDecision = await p.then(handleUnswer);
+    if (userDecision) {
+        p.play('(Okey, lets select Time)');
+        handleSelectTime(p)
+    } else {
+        p.play('(Okey, no problem lets try again)');
+        handleSelectDate(p)
+    }
+}
+
+const handleSelectTime = async (p) => {
+    const resolve = await p.then(userInputTime);
+    console.log(resolve);
+    p.play({command: "readStartTime", value: resolve.value});
+    p.play(`is selected Time correct: ${resolve.value}`);
+    let userDecision = await p.then(handleUnswer);
+    if (userDecision) {
+        p.play('(Okey)');
     } else {
         p.play('(Okey, no problem lets try again)');
         handleSelectDate(p)
@@ -131,7 +142,15 @@ const handleSelectDate = async (p) => {
 }
 
 const userInputDate = context(() => {
-    intent("$(Date|DateTime)", p => p.resolve(p.DATE));
+    intent("$(DATE)", p => p.resolve(p.DATE));
+})
+
+const userInputTime = context(() => {
+    intent("$(TIME)", p => p.resolve(p.TIME));
+})
+
+const userInput = context(() => {
+    intent("$(I* .+)", p => p.resolve(p.I));
 })
 
 projectAPI.runText = function(p, param, callback) {
@@ -142,6 +161,16 @@ projectAPI.runSelectDay = function(p, param, callback) {
     p.play(`${param.text}`);
     handleSelectDate(p)
 };
+
+const handleUnswer = context(() => {
+    intent("(Yes|Okey|Correct|Sure|Absolutely|Naturally|Definitely|Of course)", p => {
+        p.resolve(true);
+    });
+
+    intent("(No|Negative|No way|Never|Not now|Incorrect)", p => {
+        p.resolve(false);
+    });
+})
 
 
 projectAPI.onboardingTakeover = function(p, param, callback) {
