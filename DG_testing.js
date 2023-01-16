@@ -62,7 +62,7 @@ intent(`(open|edit|fill|) team name`, async p => {
         }
     }
 });
-intent(`(open|edit|fill|) select date`, async p => {
+intent(`(open|edit|fill|) start date`, async p => {
     if (p.visual) {
         if (p.visual.routeName === "manageEvent") {
             p.play({command: "editStartDate"});
@@ -154,7 +154,7 @@ projectAPI.onboardingTakeover = function(p, param, callback) {
 projectAPI.createEvent = function(p, param, callback) {
     p.play(`Let's Schedule a fundraising event.
   Please fill the next fileds. 
-  first. select day. 4-day Fundraising window.
+  first. start date. 4-day Fundraising window.
   second. Team Name.
   third. Team Activity.
 To fill the field say the number of the field or field name.`);
