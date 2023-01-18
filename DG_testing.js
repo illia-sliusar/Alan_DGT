@@ -12,16 +12,10 @@ intent('create event', p => {
     p.play({command: 'createEvent'});
 });
 
-intent(`(yes|okey|confirm|Correct|Sure|Absolutely|Naturally|Definitely)`, p => {
-    if (p.visual) {
-        if (p.visual.isOpenActiveEvent) {
-            p.play({command: 'openActiveEvent'}); 
-        }
-        if (p.visual.isOnboardingTakeover) {
-            p.play({command: 'openCreateEventDetails'}); 
-        }
-    }
+intent(`open active event`, p => {
+    p.play({command: 'openActiveEvent'})
 });
+
 intent(`(open|edit|fill|) $(D first|second|third) (field|)`, p => {
     let string = p.D ? p.D.value : "first";
     let number = string === "first" ? 1 : string === "second" ? 2 : 3
@@ -74,7 +68,16 @@ intent(`(open|edit|fill|) (start|) time`, async p => {
     }
 });
 
-
+intent(`(yes|okey|confirm|Correct|Sure|Absolutely|Naturally|Definitely)`, p => {
+    if (p.visual) {
+        if (p.visual.isOpenActiveEvent) {
+            p.play({command: 'openActiveEvent'}); 
+        }
+        if (p.visual.isOnboardingTakeover) {
+            p.play({command: 'openCreateEventDetails'}); 
+        }
+    }
+});
 intent(`(no|not|cancel)`, p => {
     if (p.visual) {
         if (p.visual.isOnboardingTakeover) {
@@ -82,10 +85,6 @@ intent(`(no|not|cancel)`, p => {
         }
     }
 
-});
-
-intent(`open active event`, p => {
-    p.play({command: 'openActiveEvent'})
 });
 
 // open event by ORDINAL
@@ -115,7 +114,11 @@ const handleTeamName = async (p) => {
 const handleSelectDate = async (p) => {
     const resolve = await p.then(userInputDate);
     console.log(resolve);
-    p.play({command: "readStartDate", value: resolve.date});
+    if (!resolve || !resolve.time) {
+        p.play('(there some problems lets try again)');
+        handleSelectDate(p)
+    }
+    p.play({command: "readStartDate", value: resolve.time});
     p.play(`is selected Date correct: ${resolve.value}`);
     let userDecision = await p.then(handleUnswer);
     if (userDecision) {
