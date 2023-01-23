@@ -86,7 +86,7 @@ intent(`(open|edit|fill|) (start|) time`, async p => {
     }
 });
 
-intent(`(yes|okey|confirm|Correct|Sure|Absolutely|Naturally|Definitely)`, p => {
+intent(`(yes|okey|yeah|confirm|Correct|Sure|Absolutely|Naturally|Definitely)`, p => {
     if (p.visual) {
         if (p.visual.isOpenActiveEvent) {
             p.play({command: 'openActiveEvent'}); 
@@ -240,7 +240,7 @@ projectAPI.runNextStep = function(p, param, callback) {
 };
 
 const handleUnswer = context(() => {
-    intent("(Yes|Okey|Correct|Sure|Absolutely|Naturally|Definitely|Of course)", p => {
+    intent("(Yes|yeah|yeap|Okey|Correct|Sure|Absolutely|Naturally|Definitely|Of course)", p => {
         p.resolve(true);
     });
 
@@ -298,7 +298,7 @@ onCreateUser((p) => {
 });
 
 const handleEventCode = async (p) => {
-    p.play(`(ok|okey|yap|good)`);
+    p.play(`(okey|yap|good)`);
     const value = await p.then(userInputCode);
     p.play({command: "addEventCode", value: value});
     let userDecision = await p.then(handleUnswer);
