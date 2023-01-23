@@ -317,7 +317,6 @@ const userInputCode = context(() => {
     $(LETTER~ u:Letters) 
     $(LETTER~ u:Letters) 
     $(LETTER~ u:Letters)`, p => {
-        p.play('Getting the products list');
         p.resolve(p)
     });
 })
