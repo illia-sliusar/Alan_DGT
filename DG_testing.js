@@ -30,8 +30,13 @@ intent(`open active event`, p => {
     p.play({command: 'openActiveEvent'})
 });
 
-intent(`Enter an event code`, p => {
-    p.play({command: 'enterEventCode'}) 
+intent(`(Enter an|open|type|edit|) event code`, p => {
+    if(p.visual.routeName === "eventJoin") {
+        p.play("Okey, lets enter the code"); 
+        handleEventCode(p)
+    } else {
+        p.play({command: 'enterEventCode'}) 
+    }
 });
 
 intent(`(open|edit|fill|) $(D first|second|third) (field|)`, p => {
@@ -95,7 +100,7 @@ intent(`(yes|okey|confirm|Correct|Sure|Absolutely|Naturally|Definitely)`, p => {
             p.play({command: 'openCreateEventDetails'}); 
         }
         if (p.visual.isEnterEventCode) {
-            p.play("Lets go, the first letter"); 
+            p.play("Lets go"); 
             handleEventCode(p)
         }
         if (p.visual.isScheduleFlowIsCompleted) {
@@ -105,6 +110,13 @@ intent(`(yes|okey|confirm|Correct|Sure|Absolutely|Naturally|Definitely)`, p => {
     }
 });
 intent(`(no|not|cancel)`, p => {
+    if (p.visual) {
+        if (p.visual.isOnboardingTakeover) {
+            p.play({command: 'goBack'}); 
+        }
+    }
+});
+intent(`(go|) back`, p => {
     if (p.visual) {
         if (p.visual.isOnboardingTakeover) {
             p.play({command: 'goBack'}); 
@@ -165,6 +177,10 @@ const handleSelectTime = async (p) => {
     }
 }
 
+onCreateUser((p) => {
+    p.userData.Letters = {en: "A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z"};
+});
+
 const handleEventCode = async (p) => {
     p.play(`(ok|okey|yap|good)`);
     const value = await p.then(userInputCode);
@@ -212,62 +228,69 @@ const userInputTime = context(() => {
 let letters_reg = "([A-Z])";
 let reg = letters_reg;
 const userInputCode = context(() => {
-    intent(`$(I* ${reg})`, p => p.resolve(p.I));
-})
+    intent(`$(LETTER~ u:Letters)
+    $(LETTER~ u:Letters) 
+    $(LETTER~ u:Letters) 
+    $(LETTER~ u:Letters) 
+    $(LETTER~ u:Letters)`, p => {
+            p.play('Getting the products list');
+            p.resolve(p)
+        });
+    })
 
 
-const userInput = context(() => {
-    intent("$(I* .+)", p => p.resolve(p.I));
-})
+    const userInput = context(() => {
+        intent("$(I* .+)", p => p.resolve(p.I));
+    })
 
-projectAPI.runText = function(p, param, callback) {
-    p.play(`${param.text}`);
-};
+    projectAPI.runText = function(p, param, callback) {
+        p.play(`${param.text}`);
+    };
 
-projectAPI.runSelectDay = function(p, param, callback) {
-    p.play(`${param.text}`);
-    handleSelectDate(p)
-};
+    projectAPI.runSelectDay = function(p, param, callback) {
+        p.play(`${param.text}`);
+        handleSelectDate(p)
+    };
 
-projectAPI.runNextStep = function(p, param, callback) {
-    p.play(`${param.text}`);
+    projectAPI.runNextStep = function(p, param, callback) {
+        p.play(`${param.text}`);
 
-};
+    };
 
-const handleUnswer = context(() => {
-    intent("(Yes|Okey|Correct|Sure|Absolutely|Naturally|Definitely|Of course)", p => {
-        p.resolve(true);
-    });
+    const handleUnswer = context(() => {
+        intent("(Yes|Okey|Correct|Sure|Absolutely|Naturally|Definitely|Of course)", p => {
+            p.resolve(true);
+        });
 
-    intent("(No|Negative|No way|Never|Not now|Incorrect)", p => {
-        p.resolve(false);
-    });
-})
+        intent("(No|Negative|No way|Never|Not now|Incorrect)", p => {
+            p.resolve(false);
+        });
+    })
 
 
-projectAPI.onboardingTakeover = function(p, param, callback) {
-    p.play(`Let's Organize your fundraising event.
+    projectAPI.onboardingTakeover = function(p, param, callback) {
+        p.play(`Let's Organize your fundraising event.
   1. Pick your start date, Select the date you’d like your fundraising event to begin.
   2. Invite your team, Share the unique event code with your team so they can join the fundraiser.
   3. Raise for 4 days. Each team member will create and share their own Pop-Up Store.
   Do you want Schedule an Event? `);
-};
-projectAPI.createEvent = function(p, param, callback) {
-    p.play(`Let's Schedule a fundraising event.
+    };
+    projectAPI.createEvent = function(p, param, callback) {
+        p.play(`Let's Schedule a fundraising event.
   Please fill the next fileds. 
   first. start date. 4-day Fundraising window.
   second. Team Name.
   third. Team Activity.
 To fill the field say the number of the field or field name.`);
-};
-projectAPI.eventCodeEntry = function(p, param, callback) {
-    p.play(`Let's Enter an event code.
+    };
+    projectAPI.eventCodeEntry = function(p, param, callback) {
+        p.play(`Let's Enter an event code.
   The event code is provided by the organizer of your fundaiser. 
   Event Field contains 6 letter.
   If you want fill it, Please spell it by letter.
   Do you want to continue?`);
-};
+    };
 
-projectAPI.createEventCTA = function(p, param, callback) {
-    p.play(`${param.text}`);
-};
+    projectAPI.createEventCTA = function(p, param, callback) {
+        p.play(`${param.text}`);
+    };
