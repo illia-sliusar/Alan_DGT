@@ -23,20 +23,15 @@ intent('what is your name', p => {
 });
 
 intent('create event', p => {
-    p.play({command: 'createEvent'});
+    if (p.visual.routeName === "manageEvent") {
+      p.play({command: 'createEvent'}); 
+    } else {
+      p.play({command: 'goToCreateEventScreen'});  
+    }
 });
 
 intent(`open active event`, p => {
     p.play({command: 'openActiveEvent'})
-});
-
-intent(`(Enter an|open|type|edit|) event code`, p => {
-    if(p.visual.routeName === "eventJoin") {
-        p.play("Okey, lets enter the code"); 
-        handleEventCode(p)
-    } else {
-        p.play({command: 'enterEventCode'}) 
-    }
 });
 
 intent(`(open|edit|fill|) $(D first|second|third) (field|)`, p => {
@@ -96,6 +91,9 @@ intent(`(yes|okey|confirm|Correct|Sure|Absolutely|Naturally|Definitely)`, p => {
         if (p.visual.isOpenActiveEvent) {
             p.play({command: 'openActiveEvent'}); 
         }
+        if (p.visual.isCreateEvent) {
+            p.play({command: 'openActiveEvent'}); 
+        }
         if (p.visual.isOnboardingTakeover) {
             p.play({command: 'openCreateEventDetails'}); 
         }
@@ -124,6 +122,9 @@ intent(`(go|) back`, p => {
     }
 
 });
+intent(`what next?`, p => {
+    p.play({command: "handleChangeState", value: {}});
+});
 
 // open event by ORDINAL
 intent(`(I want|please) (to|a|an|) (open|edit) $(ORDINAL), event`, p => {
@@ -148,34 +149,149 @@ const handleTeamName = async (p) => {
 const handleSelectDate = async (p) => {
     const resolve = await p.then(userInputDate);
     console.log(resolve);
-    if (!resolve || !resolve.time) {
+    if (!resolve || !resolve.date) {
         p.play('(there some problems lets try again)');
         handleSelectDate(p)
-    }
-    p.play({command: "readStartDate", value: resolve.time});
-    p.play(`is selected Date correct: ${resolve.value}`);
-    let userDecision = await p.then(handleUnswer);
-    if (userDecision) {
-        p.play('(Okey, lets select Time)');
-        handleSelectTime(p)
     } else {
-        p.play('(Okey, no problem lets try again)');
-        handleSelectDate(p)
+        p.play({command: "readStartDate", value: resolve.date});
+        p.play(`is selected Date correct: ${resolve.value}`);
+        let userDecision = await p.then(handleUnswer);
+        if (userDecision) {
+            p.play('(Okey, lets select Time)');
+            handleSelectTime(p)
+        } else {
+            p.play('(Okey, no problem lets try again)');
+            handleSelectDate(p)
+        }
     }
+
 }
 
 const handleSelectTime = async (p) => {
     const resolve = await p.then(userInputTime);
-    p.play({command: "readStartTime", value: resolve.time});
-    p.play(`is selected Time correct: ${resolve.value}`);
-    let userDecision = await p.then(handleUnswer);
-    if (userDecision) {
-        p.play({command: "handleChangeState", value: {isDateSelected: true}});
-    } else {
-        p.play('(Okey, no problem lets try again)');
+    if (!resolve || !resolve.time) {
+        p.play('(there some problems lets try again)');
         handleSelectTime(p)
+    } else {
+        p.play({command: "readStartTime", value: resolve.time});
+        p.play(`is selected Time correct: ${resolve.value}`);
+        let userDecision = await p.then(handleUnswer);
+        if (userDecision) {
+            p.play({command: "handleChangeState", value: {isDateSelected: true}});
+        } else {
+            p.play('(Okey, no problem lets try again)');
+            handleSelectTime(p)
+        }
     }
 }
+
+const handleCreateEventState = async (p) => {
+    if (p.visual.createEventInputState) {
+        if (!p.visual.createEventInputState.isDateSelected) {
+            p.play('Lets select Event State Date. Do you want continue?');
+            let userDecision = await p.then(handleUnswer);
+            if (userDecision) {
+                p.play({command: "editStartDate"});
+            } 
+        } else if (!p.visual.createEventInputState.isTeamNameSelected) {
+            p.play('Okey, next is select Team Name. Do you want continue?');
+            let userDecision = await p.then(handleUnswer);
+            if (userDecision) {
+                p.play('What is your Team Name?');
+                handleTeamName(p)
+            } 
+        } else if (!p.visual.createEventInputState.isActivitySelected) {
+            p.play('(Okey, next is select Team Activities)');
+            let userDecision = await p.then(handleUnswer);
+            if (userDecision) {
+                p.play({ command: "openTaxonomy" })
+            }
+        } else {
+            p.play('(Cool|okey|good), lets create event');
+            p.play({command: "createEvent"});
+        }
+    }
+}
+
+const userInputDate = context(() => {
+    intent("$(DATE)", p => p.resolve(p.DATE));
+})
+
+const userInputTime = context(() => {
+    intent("$(TIME)", p => p.resolve(p.TIME));
+})
+
+const userInput = context(() => {
+    intent("$(I* .+)", p => p.resolve(p.I));
+})
+
+projectAPI.runText = function(p, param, callback) {
+    p.play(`${param.text}`);
+};
+
+projectAPI.runSelectDay = function(p, param, callback) {
+    p.play(`${param.text}`);
+    handleSelectDate(p)
+};
+
+projectAPI.runNextStep = function(p, param, callback) {
+    p.play(`${param.text}`);
+
+};
+
+const handleUnswer = context(() => {
+    intent("(Yes|Okey|Correct|Sure|Absolutely|Naturally|Definitely|Of course)", p => {
+        p.resolve(true);
+    });
+
+    intent("(No|Negative|No way|Never|Not now|Incorrect)", p => {
+        p.resolve(false);
+    });
+})
+
+projectAPI.onboardingTakeover = function(p, param, callback) {
+        p.play(`Let's Organize your fundraising event.
+      1. Pick your start date, Select the date you’d like your fundraising event to begin.
+      2. Invite your team, Share the unique event code with your team so they can join the fundraiser.
+      3. Raise for 4 days. Each team member will create and share their own Pop-Up Store.
+      Do you want Schedule an Event? `);
+};
+
+projectAPI.createEvent = function(p, param, callback) {
+   p.play(`Let's Schedule a fundraising event.
+      Please fill the next fields. 
+      first. start date. 4-day Fundraising window.
+      second. Team Name.
+      third. Team Activity.
+    To fill the field say the number of the field or field name.`);
+    handleCreateEventState(p)
+};
+projectAPI.eventCodeEntry = function(p, param, callback) {
+    p.play(`Let's Enter an event code.
+  The event code is provided by the organizer of your fundaiser. 
+  Event Field contains 6 letter.
+  If you want fill it, Please spell it by letter.
+  Do you want to continue?`);
+}; 
+
+projectAPI.stateUpdate = async function(p, param, callback) {
+    handleCreateEventState(p)
+};
+
+projectAPI.createEventCTA = function(p, param, callback) {
+    p.play(`${param.text}`);
+};
+
+
+intent(`(Enter an|open|type|edit|) event code`, p => {
+    if(p.visual.routeName === "eventJoin") {
+        p.play("Okey, lets enter the code"); 
+        handleEventCode(p)
+    } else {
+        p.play({command: 'enterEventCode'}) 
+    }
+});
+
 
 onCreateUser((p) => {
     p.userData.Letters = {en: "A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z"};
@@ -193,38 +309,6 @@ const handleEventCode = async (p) => {
         handleSelectTime(p)
     }
 }
-
-const handleCreateEventState = async (p) => {
-    if (p.visual.createEventInputState) {
-        if (!p.visual.createEventInputState.isDateSelected) {
-            p.play('Okey, next is select Event State Date. Do you want continue?');
-            let userDecision = await p.then(handleUnswer);
-            if (userDecision) {
-                p.play({command: "editStartDate"});
-            } 
-        } else if (!p.visual.createEventInputState.isTeamNameSelected) {
-            p.play('Okey, next is select Team Name. Do you want continue?');
-            let userDecision = await p.then(handleUnswer);
-            if (userDecision) {
-                p.play('What is your Team Name?');
-                handleTeamName(p)
-            } 
-        } else if (!p.visual.createEventInputState.isActivitySelected) {
-            p.play('(Okey, next is select Team Activities)');
-        } else {
-            p.play('(Cool|okey|good), lets create event');
-        }
-    }
-}
-
-const userInputDate = context(() => {
-    intent("$(DATE)", p => p.resolve(p.DATE));
-})
-
-const userInputTime = context(() => {
-    intent("$(TIME)", p => p.resolve(p.TIME));
-})
-
 let letters_reg = "([A-Z])";
 let reg = letters_reg;
 const userInputCode = context(() => {
@@ -233,64 +317,7 @@ const userInputCode = context(() => {
     $(LETTER~ u:Letters) 
     $(LETTER~ u:Letters) 
     $(LETTER~ u:Letters)`, p => {
-            p.play('Getting the products list');
-            p.resolve(p)
-        });
-    })
-
-
-    const userInput = context(() => {
-        intent("$(I* .+)", p => p.resolve(p.I));
-    })
-
-    projectAPI.runText = function(p, param, callback) {
-        p.play(`${param.text}`);
-    };
-
-    projectAPI.runSelectDay = function(p, param, callback) {
-        p.play(`${param.text}`);
-        handleSelectDate(p)
-    };
-
-    projectAPI.runNextStep = function(p, param, callback) {
-        p.play(`${param.text}`);
-
-    };
-
-    const handleUnswer = context(() => {
-        intent("(Yes|Okey|Correct|Sure|Absolutely|Naturally|Definitely|Of course)", p => {
-            p.resolve(true);
-        });
-
-        intent("(No|Negative|No way|Never|Not now|Incorrect)", p => {
-            p.resolve(false);
-        });
-    })
-
-
-    projectAPI.onboardingTakeover = function(p, param, callback) {
-        p.play(`Let's Organize your fundraising event.
-  1. Pick your start date, Select the date you’d like your fundraising event to begin.
-  2. Invite your team, Share the unique event code with your team so they can join the fundraiser.
-  3. Raise for 4 days. Each team member will create and share their own Pop-Up Store.
-  Do you want Schedule an Event? `);
-    };
-    projectAPI.createEvent = function(p, param, callback) {
-        p.play(`Let's Schedule a fundraising event.
-  Please fill the next fileds. 
-  first. start date. 4-day Fundraising window.
-  second. Team Name.
-  third. Team Activity.
-To fill the field say the number of the field or field name.`);
-    };
-    projectAPI.eventCodeEntry = function(p, param, callback) {
-        p.play(`Let's Enter an event code.
-  The event code is provided by the organizer of your fundaiser. 
-  Event Field contains 6 letter.
-  If you want fill it, Please spell it by letter.
-  Do you want to continue?`);
-    };
-
-    projectAPI.createEventCTA = function(p, param, callback) {
-        p.play(`${param.text}`);
-    };
+        p.play('Getting the products list');
+        p.resolve(p)
+    });
+})
