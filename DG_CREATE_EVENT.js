@@ -254,12 +254,11 @@ const handleUnswer = context(() => {
 })
 
 projectAPI.onboardingTakeover = async function(p, param, callback) {
-        p.play(`Let's Organize your fundraising event.`);
-//     p.play(`Let's Organize your fundraising event.
-//       1. Pick your start date, Select the date you’d like your fundraising event to begin.
-//       2. Invite your team, Share the unique event code with your team so they can join the fundraiser.
-//       3. Raise for 4 days. Each team member will create and share their own Pop-Up Store.
-//       Do you want Schedule an Event? `);
+    p.play(`Let's Organize your fundraising event.
+      1. Pick your start date, Select the date you’d like your fundraising event to begin.
+      2. Invite your team, Share the unique event code with your team so they can join the fundraiser.
+      3. Raise for 4 days. Each team member will create and share their own Pop-Up Store.
+      Do you want Schedule an Event? `);
     let userDecision = await p.then(handleUnswer);
     if (userDecision) {
         p.play({command: 'openCreateEventDetails'});         
@@ -269,13 +268,12 @@ projectAPI.onboardingTakeover = async function(p, param, callback) {
 };
 
 projectAPI.createEvent = function(p, param, callback) {
-//    p.play(`Let's Schedule a fundraising event.
-//       Please fill the next fields. 
-//       first. start date. 4-day Fundraising window.
-//       second. Team Name.
-//       third. Team Activity.
-//     To fill the field say the number of the field or field name.`);
-    p.play(`Let's Schedule a fundraising event.`);
+   p.play(`Let's Schedule a fundraising event.
+      Please fill the next fields. 
+      first. start date. 4-day Fundraising window.
+      second. Team Name.
+      third. Team Activity.
+    To fill the field say the number of the field or field name.`);
     handleCreateEventState(p, "openSelectDate")
 };
 projectAPI.eventCodeEntry = function(p, param, callback) {
