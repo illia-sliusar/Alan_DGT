@@ -27,8 +27,8 @@ const handleBooleanAnswer = context(() => {
 const handleSelectFromOptions = context(() => {
   intent("$(ITEM~ p:OPTIONS)", async p => {
     const selected = p.ITEM.label
-    p.play(`${selected}, (correct?| did I understand correctly)?`);
-    const isCorrect = await p.then(handleBooleanAnswer)
+//     p.play(`${selected}, (correct?| did I understand correctly)?`);
+    const isCorrect = true
 
     if (isCorrect) {
       p.play(`(Great | OK |), (${selected} selected. | selecting ${selected})`)
@@ -115,8 +115,5 @@ projectAPI.runTaxonomyStep = async function (p, param, callback) {
 
   const answer = await p.then(answerHandler)
 
-  if(param.isLastStep) {
-      p.play("(Great| OK|) (I think | looks like) we're done (here|), (thank you | thanks).")
-  }
   callback(null, answer)
 }
